@@ -64,5 +64,4 @@ Spend recorded for user-4 today (should reflect exactly ONE order, 600): 600
 ```
 
 ## Notes
-
-This is a portfolio project demonstrating idempotency and saga-style safety patterns, built with in-memory implementations for demonstration. Production use would swap `InMemoryIdempotencyStore` and `InMemorySpendTracker` for Redis or Postgres-backed implementations behind the same interfaces.
+Production use would swap `InMemoryIdempotencyStore` and `InMemorySpendTracker` for Redis or Postgres-backed implementations behind the same interfaces.
