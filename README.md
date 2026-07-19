@@ -35,7 +35,36 @@ utils/        — deterministic idempotency key derivation
 ```
 
 All dependencies are injected via interfaces (dependency inversion) — `OrderPlacementService` never depends on a concrete store or merchant client, only on contracts. Swapping the in-memory store for Redis, or the mock merchant for a real HTTP client, requires zero changes to the service itself.
+## flow
+## Flow
 
+```mermaid
+flowchart TD
+    A[placeOrder request] --> B{Spend guardrail check}
+    B -- rejected --> Z1[Return DomainFailure<br/>no key generated]
+    B -- allowed --> C[Derive deterministic idempotency key<br/>userId + cartId + time bucket]
+    C --> D{Look up record in store}
+
+    D -- not found --> E[Create IN_FLIGHT record]
+    E --> F[Call MerchantClient.placeOrder]
+
+    D -- SUCCEEDED / FAILED --> Z2[Return cached result]
+
+    D -- IN_FLIGHT, fresh --> Z3[Reject: already being processed]
+
+    D -- IN_FLIGHT, stale --> G[Reconcile via MerchantClient.checkStatus]
+    G -- FOUND --> H[Update record with confirmed result]
+    H --> Z4[Return SAME order<br/>no duplicate]
+    G -- NOT_FOUND --> F
+
+    F -- success --> I[Mark SUCCEEDED<br/>record daily spend]
+    F -- domain rejection --> J[Mark FAILED]
+    F -- timeout --> K[Leave as IN_FLIGHT<br/>outcome unknown]
+
+    I --> Z5[Return OrderSuccess]
+    J --> Z6[Return OrderFailure]
+    K --> Z7[Return TransportFailure]
+```
 ## Running the demo
 
 ```bash
