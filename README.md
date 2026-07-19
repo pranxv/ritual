@@ -35,7 +35,6 @@ utils/        — deterministic idempotency key derivation
 ```
 
 All dependencies are injected via interfaces (dependency inversion) — `OrderPlacementService` never depends on a concrete store or merchant client, only on contracts. Swapping the in-memory store for Redis, or the mock merchant for a real HTTP client, requires zero changes to the service itself.
-## flow
 ## Flow
 
 ```mermaid
